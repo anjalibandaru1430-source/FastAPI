@@ -1,55 +1,90 @@
-from fastapi import APIRouter
-from pydantic import BaseModel
+from models import Product
+from schemas import ProductCreate
+from database import SessionLocal
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
-products_router = APIRouter(prefix="/products", tags=["products"])
-
-products = [
-    {"id": 1, "name": "laptop", "price": 50000},
-    {"id": 2, "name": "mobile", "price": 20000},
-    {"id": 3, "name": "tablet", "price": 30000}
-]
-
-class Product(BaseModel):
-    id: int
-    name: str
-    price: float
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+product_Router=APIRouter(prefix="/Product" ,tags= ["products"])
 
 
-@products_router.get("/get")
-def get_products():
+@product_Router.get('/get')
+def get_products(
+    db: Session = Depends(get_db)
+):
+    products = db.query(Product).all()
     return products
 
 
-@products_router.get("/get/{id}")
-def get_product_by_id(id: int):
-    for product in products:
-        if product["id"] == id:
-            return product
-    return {"message": "product not found"}
+@product_Router.get('/{id}')
+def get_product_by_id(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    product = db.query(Product).filter(Product.id == id).first()
+
+    if not product:
+        return {"message": "product not found"}
+
+    return product
 
 
-@products_router.post("/create")
-def create(product: Product):
-    products.append(product.dict())
-    return {"message": "product created successfully"}
+@product_Router.post('/post')
+def add_product(product: ProductCreate,db: Session = Depends(get_db)):
+
+    new_product = Product(**product.model_dump())
+
+    db.add(new_product)
+    db.commit()
+    db.refresh(new_product)
+
+    return {
+        "message": "product added successfully",
+        "product": new_product
+    }
 
 
-@products_router.put("/put/{id}")
-def update(id: int, updated_product: Product):
-    for product in products:
-        if product["id"] == id:
-            product["name"] = updated_product.name
-            product["price"] = updated_product.price
-            return {"message": "product updated successfully"}
+@product_Router.put('/put/{id}')
+def update_product(
+    id: int,
+    product: ProductCreate,
+    db: Session = Depends(get_db)
+):
+    existing_product = db.query(Product).filter(Product.id == id).first()
 
-    return {"message": "product not found"}
+    if not existing_product:
+        return {"message": "product not found"}
+
+    existing_product.name = product.name
+    existing_product.description = product.description
+    existing_product.price = product.price
+    existing_product.quantity = product.quantity
+
+    db.commit()
+    db.refresh(existing_product)
+
+    return {
+        "message": "product updated successfully",
+        "product": existing_product
+    }
 
 
-@products_router.delete("/delete/{id}")
-def delete(id: int):
-    for product in products:
-        if product["id"] == id:
-            products.remove(product)
-            return {"message": "product deleted successfully"}
+@product_Router.delete('/delete/{id}')
+def delete_product(
+    id: int,
+    db: Session = Depends(get_db)
+):
+    product = db.query(Product).filter(Product.id == id).first()
 
-    return {"message": "product not found"}
+    if not product:
+        return {"message": "product not found"}
+
+    db.delete(product)
+    db.commit()
+
+    return {"message": "product deleted successfully"}
