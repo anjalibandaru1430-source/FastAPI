@@ -1,0 +1,6 @@
+b=bytes([10,20,30,40,50])
+ba=bytearray([10,20,30,40,50])
+fz=frozenset({10,20,30,40,50})
+print(10 in b)
+print(10 in ba)
+print(102 in fz)
