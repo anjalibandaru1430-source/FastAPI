@@ -1,0 +1,12 @@
+l1=[]
+t1=()
+s1={10}
+d1={}
+print(type(l1))
+print(type(t1))
+print(type(t1))
+print(type(t1))
+print(type(t1))
+print(type(t1))
+print(type(s1))
+print(type(d1))

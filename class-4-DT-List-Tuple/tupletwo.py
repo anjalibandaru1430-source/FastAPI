@@ -1,0 +1,11 @@
+a=100
+b,c=100,200
+d=100,200,300,400
+e=(10,20,30,40)
+f=[10,20,30,40]
+print(a)
+print(b)
+print(c)
+print(d)
+print(e)
+print(f)
