@@ -1,0 +1,13 @@
+Rest API info:
+
+Usage: get all Products
+RestAPI URL: http://127.0.0.1:8000/products/read
+Method Type:GET
+Required Fields: None 
+Access Type:public
+
+Usage: update product by id
+RestAPI URL: http://127.0.0.1:8000/products/update/101
+Method Type:PUT
+Required Fields: pid,pname,price,category 
+Access Type:public
